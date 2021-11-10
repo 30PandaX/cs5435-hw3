@@ -28,6 +28,7 @@ def set_coins(db, session):
     try:
         dpt = cbc.decrypt(ctxt_bytes)
     except ValueError as exc:
+        response.status = 400
         return template(
                 "profile",
                 user=admin,
@@ -35,7 +36,7 @@ def set_coins(db, session):
                 error="Unspecified error.",
                 admin=admin.admin,
                 )
-    if not dpt:#Decrypt returns False if there was a padding exceptionu
+    if not dpt:#Decrypt returns False if there was a padding exception
         return template(
                 "profile",
                 user=admin,
@@ -46,6 +47,7 @@ def set_coins(db, session):
     is_admin_user = app.api.encr_decr.is_admin_cookie(dpt)
     print("Is admin user: " + str(is_admin_user))
     if not is_admin_user:
+        response.status = 400
         return template(
             "profile",
             user=admin,
