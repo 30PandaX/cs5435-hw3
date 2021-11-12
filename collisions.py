@@ -28,7 +28,7 @@ def find_collisions(key, num_collisions):
     
     while max_bucket_len < num_collisions:
         bucket_id = ht_hash(key, str(i).encode("utf-8"), s)
-        if max_bucket_len < 8: # why use this hardcode 8? bc when maxCol==8, d would increase to 38243
+        if max_bucket_len < 8: # why use this hardcoded 8? bc when max_bucket_len==8, hash_map would increase to 38243
             if bucket_id not in hash_map:
                 hash_map[bucket_id] = []
             hash_map[bucket_id].append(str(i))
