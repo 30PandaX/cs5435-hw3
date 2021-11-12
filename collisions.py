@@ -2,41 +2,71 @@ import siphash
 import datetime
 
 s = 2**16
+key = b'\x01'*16
 
-test = ['17076', '134875', '368425', '406782', '543665', '553314', '705066', '740085', '754095', '841465', '861736', '1011710', '1062521', '1149426', '1255305', '1287787', '1315436', '1329654', '1376308', '1428996', '1544521', '1734559', '1744179', '1806490', '1880423', '1889961', '1905592', '1910789', '1923096', '1926487', '1934351', '2010604', '2019179', '2021647', '2023677', '2200669', '2319584', '2338894', '2467123', '2471912', '2501319', '2718479', '2736240', '2757677', '2901633', '2907587', '3039984', '3094301', '3114610', '3173779']
-
-# ht_hash(key, str(17076).encode("utf-8"), s)
 
 def callhash(hashkey, inval):
     return siphash.SipHash_2_4(hashkey, inval).hash()
-
 
 def ht_hash(hashkey, inval, htsize):
     return callhash(hashkey, inval) % htsize
 
 #Put your collision-finding code here.
 #Your function should output the colliding strings in a list.
-def find_collisions(key):
-    colls = []
-    i = 0
-    while (len(colls) < 1000):
-        hash_res = ht_hash(key, str(i).encode("utf-8"), s)
-        if hash_res == 0:
-            colls.append(str(i))
-            if len(colls) % 50 == 0:
-                print(f"{datetime.datetime.now()}: {len(colls)}")
+def find_collisions(key, num_collisions):
+    hash_map = {}
+    i = 0 # used for construct random string
+    max_bucket_len = 0
+    res_bucket_id = 0
+    # used for filter out unpromising candidates in a progressive way, cur_length < max_bucket_len - thresh[i]; 
+    thresh = [32, 128, 64, 128, 64, 128, 64] # [16, 32, 64, 128, 64, 128, 64, 128, 64] # [16, 32, 128, 64, 32]
+    # used for which threshold should we use for now
+    idx = 0 
+    print(f"{datetime.datetime.now()}: {max_bucket_len}, dict size: {len(hash_map)}")
+    
+    # when we find one bucket that has length == num_collisions, break loop
+    
+    while max_bucket_len < num_collisions:
+        bucket_id = ht_hash(key, str(i).encode("utf-8"), s)
+        if max_bucket_len < 8: # why use this hardcode 8? bc when maxCol==8, d would increase to 38243
+            if bucket_id not in hash_map:
+                hash_map[bucket_id] = []
+            hash_map[bucket_id].append(str(i))
+            # update max_bucket_len
+            if len(hash_map[bucket_id]) > max_bucket_len:
+                max_bucket_len = len(hash_map[bucket_id])
+                res_bucket_id = bucket_id
+        else:
+            if bucket_id in hash_map:
+                if max_bucket_len - thresh[idx] < len(hash_map[bucket_id]):
+                    hash_map[bucket_id].append(str(i))
+                    # update max_bucket_len
+                    if len(hash_map[bucket_id]) > max_bucket_len:
+                        max_bucket_len = len(hash_map[bucket_id])
+                        res_bucket_id = bucket_id 
+                        # track progress, only for debugging purpose 
+                        # In fact, during this process, the number of candidates in the hash_map will be smaller and smaller             
+                        if max_bucket_len % 50 == 0:
+                            idx = min(idx + 1, len(thresh) - 1)
+                            print(f"{datetime.datetime.now()}: {max_bucket_len}, dict size: {len(hash_map)}")
+                else:
+                    # abandon those unpromising candidates to save memory
+                    hash_map.pop(bucket_id)
+
         i += 1
-    return colls
+    check_collisions(key, hash_map[res_bucket_id])
+    return hash_map[res_bucket_id]
 
 #Implement this function, which takes the list of
 #collisions and verifies they all have the same
 #SipHash output under the given key.
 def check_collisions(key, colls):
     cnt = 0
+    ans = ht_hash(key, colls[0].encode("utf-8"), s)
     for col in colls:
         val = ht_hash(key, col.encode("utf-8"), s)
-        if val != 0:
-            print("{col} wrong {val}")
+        if val != ans:
+            print(f"{col} is wrong, its hash: {val} != {ans}")
             cnt += 1
     print(f"{(len(colls) - cnt)} are right")
 
@@ -44,8 +74,7 @@ def check_collisions(key, colls):
 if __name__=='__main__':
     #Look in the source code of the app to
     #find the key used for hashing.
-    key = b'\x01'*16
-    colls = find_collisions(key)
-    check_collisions(key, colls)
+    # key is defined at the beginning of this file
+    colls = find_collisions(key, 1000)
     with open("./res.txt", "w") as f:
         f.write(str(colls))
