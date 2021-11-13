@@ -76,14 +76,12 @@ def po_attack_2blocks(po, ctx):
             suffix = []
             for val in temp[i+1:]:
                 suffix.append(cur_pad_byte ^ val)
-            # [cur_pad_byte ^ val for val in temp[i+1:]]
             byte_array = bytearray(prefix)
             byte_array.append(cur_byte)
             byte_array.extend(suffix)
             
             # convert the mauled c0 back to bytes 
             # and test if the modification returns an error
-
             if po.test_ciphertext((bytes(byte_array) + c1)):
                 temp[i] = cur_byte ^ cur_pad_byte
                 cur_decoded_ascii = cur_byte ^ c0[i] ^ cur_pad_byte
