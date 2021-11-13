@@ -117,6 +117,7 @@ def po_attack(po, ctx):
         messages += cur_msg
         print("cur_msg: ", cur_msg)
     print("recovered message:", messages)
+    # recovered message: "squeamishossifrage"
     return messages
 
 cookie='e9fae094f9c779893e11833691b6a0cd3a161457fa8090a7a789054547195e606035577aaa2c57ddc937af6fa82c013d'
