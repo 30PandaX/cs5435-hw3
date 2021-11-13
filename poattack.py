@@ -76,7 +76,6 @@ def po_attack_2blocks(po, ctx):
             suffix = []
             for val in temp[i+1:]:
                 suffix.append(cur_pad_byte ^ val)
-            # [cur_pad_byte ^ val for val in temp[i+1:]]
             byte_array = bytearray(prefix)
             byte_array.append(cur_byte)
             byte_array.extend(suffix)
