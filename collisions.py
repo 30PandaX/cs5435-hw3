@@ -22,7 +22,7 @@ def find_collisions(key, num_collisions):
     thresh = [32, 128, 64, 128, 64, 128, 64] # [16, 32, 64, 128, 64, 128, 64, 128, 64] # [16, 32, 128, 64, 32]
     # used for which threshold should we use for now
     idx = 0 
-    print(f"{datetime.datetime.now()}: {max_bucket_len}, dict size: {len(hash_map)}")
+    print(f"{datetime.datetime.now()}: {max_bucket_len}, initial dict size: {len(hash_map)}")
     
     # when we find one bucket that has length == num_collisions, break loop
     
@@ -75,6 +75,7 @@ if __name__=='__main__':
     #Look in the source code of the app to
     #find the key used for hashing.
     # key is defined at the beginning of this file
-    colls = find_collisions(key, 1000)
+    colls = find_collisions(key, 20)
+    print(colls)
     with open("./res.txt", "w") as f:
         f.write(str(colls))
